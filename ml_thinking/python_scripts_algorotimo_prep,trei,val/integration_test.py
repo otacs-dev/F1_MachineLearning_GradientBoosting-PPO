@@ -6,8 +6,11 @@ Valida que o dataset limpo pode ser usado com sucesso no ambiente de RL.
 """
 
 import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'Scripts_for_env'))
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+RL_DIR = PROJECT_ROOT / "RL_F1_for_performance"
+sys.path.insert(0, str(RL_DIR))
 
 import pandas as pd
 import numpy as np
@@ -24,9 +27,9 @@ print(f"   ✓ Carregado: {len(df_clean):,} linhas")
 print(f"   ✓ Colunas: {', '.join(df_clean.columns.tolist()[:6])}...")
 
 # ── 2. CRIA AMBIENTE F1 COM CSV ORIGINAL ───────────────────────────────
-print("\n🏁 [2/5] Inicializando F1RaceEnv com CSV original...")
+print("\n🏁 [2/5] Inicializando F1RaceEnv com dados do RL...")
 env_original = F1RaceEnv(
-    data_path='Circuit_List/F1_2025_Telemetry_Master.csv'
+    data_path='f1_data'
 )
 obs, info = env_original.reset(seed=42)
 print(f"   ✓ Ambiente criado com sucesso")

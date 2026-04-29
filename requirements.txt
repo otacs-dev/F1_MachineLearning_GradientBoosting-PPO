@@ -1,0 +1,6 @@
+pandas
+numpy
+gymnasium
+matplotlib
+seaborn
+fastf1
