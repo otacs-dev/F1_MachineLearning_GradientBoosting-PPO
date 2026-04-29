@@ -21,6 +21,7 @@ import pandas as pd
 INPUT_PATH = "Dataset_Treino_F1_2025_DENOISED.csv"
 OUTPUT_DIR = "ml_ready"
 TARGET_COL = "LapTimeSeconds"
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 # Features com potencial de leakage direto/indireto para regressao de tempo de volta
@@ -106,13 +107,40 @@ def split_by_round(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Dat
     return train, val, test
 
 
+def to_portable_path(path: Path) -> str:
+    """
+    Converte path absoluto para relativo ao cwd quando possível,
+    evitando metadata dependente da maquina.
+    """
+    if not path.is_absolute():
+        return str(path)
+    try:
+        return str(path.relative_to(Path.cwd()))
+    except ValueError:
+        return str(path)
+
+
 def main(input_path: str = INPUT_PATH, output_dir: str = OUTPUT_DIR) -> None:
     in_path = Path(input_path)
+    if not in_path.is_absolute():
+        # Permite rodar tanto da pasta atual quanto da pasta do script.
+        cwd_candidate = Path.cwd() / in_path
+        script_candidate = SCRIPT_DIR / in_path
+        if cwd_candidate.exists():
+            in_path = cwd_candidate
+        else:
+            in_path = script_candidate
+
     out_dir = Path(output_dir)
+    if not out_dir.is_absolute():
+        out_dir = Path.cwd() / out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if not in_path.exists():
-        raise FileNotFoundError(f"Arquivo de entrada nao encontrado: {input_path}")
+        raise FileNotFoundError(
+            f"Arquivo de entrada nao encontrado: {input_path} "
+            f"(tentado: {in_path})"
+        )
 
     df = pd.read_csv(in_path)
     features = build_feature_list(df)
@@ -128,8 +156,8 @@ def main(input_path: str = INPUT_PATH, output_dir: str = OUTPUT_DIR) -> None:
     test.to_csv(out_dir / "test.csv", index=False)
 
     metadata = {
-        "input_path": str(in_path),
-        "output_dir": str(out_dir),
+        "input_path": to_portable_path(in_path),
+        "output_dir": to_portable_path(out_dir),
         "target": TARGET_COL,
         "feature_count": len(features),
         "features": features,

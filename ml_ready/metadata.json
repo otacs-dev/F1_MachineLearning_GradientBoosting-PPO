@@ -1,0 +1,89 @@
+{
+  "input_path": "ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025_DENOISED.csv",
+  "output_dir": "ml_ready",
+  "target": "LapTimeSeconds",
+  "feature_count": 32,
+  "features": [
+    "Round",
+    "GP",
+    "Driver",
+    "Number",
+    "TeamName",
+    "LapNumber",
+    "Stint",
+    "Compound",
+    "TyreLife",
+    "IsAccurate",
+    "IsPitStop",
+    "Team",
+    "air_temp_mean",
+    "air_temp_std",
+    "track_temp_mean",
+    "track_temp_std",
+    "humidity_mean",
+    "pressure_mean",
+    "wind_speed_mean",
+    "rainfall_ratio",
+    "had_rain",
+    "is_wet_session",
+    "temp_delta_track_air",
+    "is_first_lap",
+    "is_first_stint_lap",
+    "race_lap_progress",
+    "is_final_quarter",
+    "stint_progress",
+    "prev_was_pit",
+    "is_outlier",
+    "safety_car",
+    "track_context"
+  ],
+  "leakage_columns_excluded": [
+    "LapTimeSeconds",
+    "Sector1TimeSeconds",
+    "Sector2TimeSeconds",
+    "Sector3TimeSeconds"
+  ],
+  "id_columns_excluded": [
+    "Abbreviation",
+    "FullName",
+    "TeamColor"
+  ],
+  "rows": {
+    "full": 14858,
+    "train": 10944,
+    "val": 1996,
+    "test": 1918
+  },
+  "rounds": {
+    "train": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "val": [
+      13,
+      14
+    ],
+    "test": [
+      15,
+      16
+    ]
+  },
+  "precheck": {
+    "errors": [],
+    "warnings": [
+      "Features com nulos (sera necessario imputar no treino): {'TeamName': 487, 'Stint': 380, 'TyreLife': 450}"
+    ],
+    "target_nulls": 0,
+    "non_positive_target": 0
+  }
+}
