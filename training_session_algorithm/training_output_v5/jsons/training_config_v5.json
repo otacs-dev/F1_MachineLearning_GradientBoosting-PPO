@@ -1,0 +1,13 @@
+{
+  "version": "v5_neural_laptime",
+  "timesteps": 500000,
+  "seed": 42,
+  "device": "auto",
+  "observation_dim": 14,
+  "predictor_trained": true,
+  "track_calibrations": 16,
+  "driver_ml_stats": 21,
+  "ml_rows": 87197,
+  "data_root": "/home/otacs/Documentos/PI_IV",
+  "created_at": "2026-05-05 18:12:11"
+}

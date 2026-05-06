@@ -1,0 +1,60 @@
+VALIDACAO OFICIAL
+-----------------
+Rounds avaliados: 16
+Pilotos comparados: 259
+Exact position match: 5.41% (14/259)
+Top-3 concordancia: 2.70% (7/259)
+MAE de posicao: 6.147
+-------------------------------------------------------------------------------------
+
+A entrega deve conter:
+
+- Algoritmo ou técnica aplicada (ex.: regressão linear, árvore de decisão, clustering, análise estatística etc.).
+- Justificativa da escolha do método em relação ao problema do projeto.
+- Código ou notebook utilizado (Python, R ou outra ferramenta).
+- Breve explicação das etapas executadas (README.md)
+
+ 
+
+Dependendo do tipo de problema:
+
+- accuracy, precision, recall, F1-score
+- MAE, MSE, RMSE, R²
+- silhouette score ou interpretação dos clusters
+- padrões ou relações identificadas
+
+ 
+
+Apresentar pelo menos , por exemplo:
+
+- matriz de confusão
+- gráfico de dispersão
+- comparação entre valores reais e previstos
+- distribuição de clusters
+- gráficos de erro
+
+ 
+
+Explicar em poucas linhas:
+
+* O modelo está apresentando resultados promissores?
+* Quais padrões ou insights já foram identificados?
+* Os resultados fazem sentido para o problema proposto?
+
+ 
+
+Indicar o que será feito até a próxima entrega, por exemplo:
+
+- ajuste de hiperparâmetros
+- teste de novos modelos
+- melhoria na qualidade dos dados
+- criação de novas variáveis (feature engineering)
+
+ 
+
+Formato da entrega
+
+- Notebook (.ipynb) ou relatório curto (PDF ou DOC)
+- Código comentado
+- Gráficos gerados pelo modelo
+-Breve interpretação dos resultados (README.md)

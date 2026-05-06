@@ -1,0 +1,8 @@
+{
+  "status": "trained",
+  "samples": 112955,
+  "train_samples": 96011,
+  "val_samples": 16944,
+  "mae_seconds": 6.4028,
+  "r2_score": 0.5381
+}

@@ -1,8 +1,0 @@
-__pycache__/
-.ipynb_checkpoints/
-venv/
-.env
-*.log
-# Se os dados em ml_ready_data forem muito pesados e você não quiser Git LFS:
-# ml_ready_data/
-.aider*
