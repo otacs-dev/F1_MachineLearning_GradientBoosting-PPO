@@ -1,0 +1,185 @@
+2026-05-05 18:11:02,077 [INFO] === Fontes de dados ===
+2026-05-05 18:11:02,077 [INFO]   ✅ f1_data: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data
+2026-05-05 18:11:02,077 [INFO]   ✅ lap_data: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data/lap_data.csv
+2026-05-05 18:11:02,077 [INFO]   ✅ pit_stops: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data/pit_stops.csv
+2026-05-05 18:11:02,077 [INFO]   ✅ race_events: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data/race_events.csv
+2026-05-05 18:11:02,077 [INFO]   ✅ team_performances: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data/team_performances.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ drivers: /home/otacs/Documentos/PI_IV/RL_F1_for_performance/f1_data/drivers.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ track_results_dir: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/Track_Results
+2026-05-05 18:11:02,078 [INFO]   ✅ dataset_balanced: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025_BALANCED.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ dataset_cleaned: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025_CLEANED.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ dataset_denoised: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025_DENOISED.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ dataset_flags: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025_FLAGS.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ dataset_base: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_thinking/python_scripts_algorotimo_prep,trei,val/Dataset_Treino_F1_2025.csv
+2026-05-05 18:11:02,078 [INFO]   ✅ train_split: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_ready_data/ml_ready/train.csv
+2026-05-05 18:11:02,079 [INFO]   ✅ val_split: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_ready_data/ml_ready/val.csv
+2026-05-05 18:11:02,079 [INFO]   ✅ test_split: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_ready_data/ml_ready/test.csv
+2026-05-05 18:11:02,079 [INFO]   ✅ telemetry_master: /home/otacs/Documentos/PI_IV/ml_prepare_data/ml_ready_data/Circuit_List/F1_2025_Telemetry_Master.csv
+2026-05-05 18:11:02,079 [INFO] =======================
+2026-05-05 18:11:02,080 [INFO] 📂 Carregando dados base...
+2026-05-05 18:11:02,202 [INFO] 📂 Carregando Track_Results...
+2026-05-05 18:11:02,245 [INFO] Track_Results: 16 corridas
+2026-05-05 18:11:02,246 [INFO] ✅ 16 pistas calibradas com dados reais 2025
+2026-05-05 18:11:02,246 [INFO] 📂 Carregando datasets ML...
+2026-05-05 18:11:02,305 [INFO]   📄 Dataset_Treino_F1_2025_BALANCED.csv: 6,744 linhas × 31 colunas
+2026-05-05 18:11:02,453 [INFO]   📄 Dataset_Treino_F1_2025_DENOISED.csv: 14,858 linhas × 40 colunas
+2026-05-05 18:11:02,568 [INFO]   📄 Dataset_Treino_F1_2025_CLEANED.csv: 15,096 linhas × 31 colunas
+2026-05-05 18:11:02,641 [INFO]   📄 Dataset_Treino_F1_2025.csv: 17,517 linhas × 20 colunas
+2026-05-05 18:11:02,750 [INFO]   📄 train.csv: 10,944 linhas × 40 colunas
+2026-05-05 18:11:02,778 [INFO]   📄 val.csv: 1,996 linhas × 40 colunas
+2026-05-05 18:11:02,807 [INFO]   📄 test.csv: 1,918 linhas × 40 colunas
+2026-05-05 18:11:02,848 [INFO]   📄 Track_Results: 16 arquivos
+2026-05-05 18:11:02,896 [INFO]   📄 Telemetry Master: 17,805 linhas (amostra)
+2026-05-05 18:11:02,977 [INFO] ✅ Dataset combinado: 87,197 linhas × 41 colunas
+2026-05-05 18:11:03,093 [INFO] Estatísticas ML: 21 pilotos
+2026-05-05 18:11:03,103 [INFO] ============================================================
+2026-05-05 18:11:03,103 [INFO] 🤖 FASE 1: TREINO SUPERVISIONADO DO LAP TIME PREDICTOR
+2026-05-05 18:11:03,103 [INFO] ============================================================
+2026-05-05 18:11:04,977 [INFO] 🔧 Preparando features para LapTimePredictor...
+2026-05-05 18:11:04,998 [INFO]   → Processando lap_df (26,606 linhas)...
+2026-05-05 18:11:08,629 [INFO]   → Processando combined_df (87,197 linhas)...
+2026-05-05 18:11:22,376 [INFO] ✅ Dataset de treino supervisionado: 112,955 amostras
+2026-05-05 18:11:22,494 [INFO] 🤖 Treinando GradientBoostingRegressor...
+2026-05-05 18:12:09,110 [INFO] ✅ LapTimePredictor treinado! MAE=6.403s | R²=0.5381
+2026-05-05 18:12:09,115 [INFO] 📊 Feature importance (top 5):
+2026-05-05 18:12:09,115 [INFO]     track_factor: 0.3014
+2026-05-05 18:12:09,115 [INFO]     tyre_life: 0.2108
+2026-05-05 18:12:09,115 [INFO]     compound_id: 0.2008
+2026-05-05 18:12:09,115 [INFO]     lap_number: 0.1546
+2026-05-05 18:12:09,116 [INFO]     lap_progress: 0.1322
+2026-05-05 18:12:09,274 [INFO] 💾 LapTimePredictor salvo em: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/lap_time_predictor.pkl
+2026-05-05 18:12:09,275 [INFO] ✅ Predictor salvo. Métricas: {'status': 'trained', 'samples': 112955, 'train_samples': 96011, 'val_samples': 16944, 'mae_seconds': 6.4028, 'r2_score': 0.5381}
+2026-05-05 18:12:09,275 [INFO] ============================================================
+2026-05-05 18:12:09,275 [INFO] 🏎️  FASE 2: TREINAMENTO RL (PPO)
+2026-05-05 18:12:09,275 [INFO] ============================================================
+2026-05-05 18:12:11,357 [INFO] ✅ Modelo PPO criado | obs=14 | predictor=neural
+2026-05-05 18:12:11,358 [INFO] 🚀 Iniciando PPO...
+2026-05-05 18:12:11,358 [INFO]    Timesteps  : 500,000
+2026-05-05 18:12:11,358 [INFO]    Motor      : GradientBoosting neural
+2026-05-05 18:12:11,358 [INFO]    Obs space  : 14 features
+2026-05-05 18:12:11,359 [INFO]    Pistas     : 16 com dados reais 2025
+2026-05-05 18:12:11,359 [INFO]    Pilotos ML : 21
+2026-05-05 18:13:42,308 [INFO] 📊 5000 steps | 55.0 steps/s | 1.5min
+2026-05-05 18:15:08,543 [INFO] 📊 10000 steps | 56.4 steps/s | 3.0min
+2026-05-05 18:16:37,355 [INFO] 📊 15000 steps | 56.4 steps/s | 4.4min
+2026-05-05 18:18:03,297 [INFO] 📊 20000 steps | 56.8 steps/s | 5.9min
+2026-05-05 18:19:28,526 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_25000_steps.zip (25000 steps)
+2026-05-05 18:19:28,526 [INFO] 📊 25000 steps | 57.2 steps/s | 7.3min
+2026-05-05 18:20:51,587 [INFO] 📊 30000 steps | 57.7 steps/s | 8.7min
+2026-05-05 18:22:17,285 [INFO] 📊 35000 steps | 57.8 steps/s | 10.1min
+2026-05-05 18:23:38,027 [INFO] 📊 40000 steps | 58.3 steps/s | 11.4min
+2026-05-05 18:24:55,966 [INFO] 📊 45000 steps | 58.9 steps/s | 12.7min
+2026-05-05 18:26:17,896 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_50000_steps.zip (50000 steps)
+2026-05-05 18:26:17,897 [INFO] 📊 50000 steps | 59.1 steps/s | 14.1min
+2026-05-05 18:27:38,657 [INFO] 📊 55000 steps | 59.3 steps/s | 15.5min
+2026-05-05 18:28:59,032 [INFO] 📊 60000 steps | 59.5 steps/s | 16.8min
+2026-05-05 18:30:15,545 [INFO] 📊 65000 steps | 60.0 steps/s | 18.1min
+2026-05-05 18:31:35,555 [INFO] 📊 70000 steps | 60.1 steps/s | 19.4min
+2026-05-05 18:32:54,912 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_75000_steps.zip (75000 steps)
+2026-05-05 18:32:54,913 [INFO] 📊 75000 steps | 60.3 steps/s | 20.7min
+2026-05-05 18:34:19,602 [INFO] 📊 80000 steps | 60.2 steps/s | 22.1min
+2026-05-05 18:35:41,462 [INFO] 📊 85000 steps | 60.3 steps/s | 23.5min
+2026-05-05 18:37:04,430 [INFO] 📊 90000 steps | 60.3 steps/s | 24.9min
+2026-05-05 18:38:28,671 [INFO] 📊 95000 steps | 60.2 steps/s | 26.3min
+2026-05-05 18:39:48,064 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_100000_steps.zip (100000 steps)
+2026-05-05 18:39:48,065 [INFO] 📊 100000 steps | 60.4 steps/s | 27.6min
+2026-05-05 18:41:09,559 [INFO] 📊 105000 steps | 60.4 steps/s | 29.0min
+2026-05-05 18:42:28,585 [INFO] 📊 110000 steps | 60.5 steps/s | 30.3min
+2026-05-05 18:43:54,449 [INFO] 📊 115000 steps | 60.4 steps/s | 31.7min
+2026-05-05 18:45:13,240 [INFO] 📊 120000 steps | 60.5 steps/s | 33.0min
+2026-05-05 18:46:31,961 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_125000_steps.zip (125000 steps)
+2026-05-05 18:46:31,962 [INFO] 📊 125000 steps | 60.7 steps/s | 34.3min
+2026-05-05 18:47:51,488 [INFO] 📊 130000 steps | 60.7 steps/s | 35.7min
+2026-05-05 18:49:09,846 [INFO] 📊 135000 steps | 60.9 steps/s | 37.0min
+2026-05-05 18:50:30,205 [INFO] 📊 140000 steps | 60.9 steps/s | 38.3min
+2026-05-05 18:51:49,304 [INFO] 📊 145000 steps | 61.0 steps/s | 39.6min
+2026-05-05 18:53:10,987 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_150000_steps.zip (150000 steps)
+2026-05-05 18:53:10,987 [INFO] 📊 150000 steps | 61.0 steps/s | 41.0min
+2026-05-05 18:54:28,944 [INFO] 📊 155000 steps | 61.1 steps/s | 42.3min
+2026-05-05 18:55:50,347 [INFO] 📊 160000 steps | 61.1 steps/s | 43.6min
+2026-05-05 18:57:08,504 [INFO] 📊 165000 steps | 61.2 steps/s | 45.0min
+2026-05-05 18:58:27,683 [INFO] 📊 170000 steps | 61.2 steps/s | 46.3min
+2026-05-05 18:59:45,244 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_175000_steps.zip (175000 steps)
+2026-05-05 18:59:45,244 [INFO] 📊 175000 steps | 61.3 steps/s | 47.6min
+2026-05-05 19:01:04,102 [INFO] 📊 180000 steps | 61.4 steps/s | 48.9min
+2026-05-05 19:02:24,853 [INFO] 📊 185000 steps | 61.4 steps/s | 50.2min
+2026-05-05 19:03:41,981 [INFO] 📊 190000 steps | 61.5 steps/s | 51.5min
+2026-05-05 19:05:01,960 [INFO] 📊 195000 steps | 61.5 steps/s | 52.8min
+2026-05-05 19:06:21,590 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_200000_steps.zip (200000 steps)
+2026-05-05 19:06:21,590 [INFO] 📊 200000 steps | 61.5 steps/s | 54.2min
+2026-05-05 19:07:40,474 [INFO] 📊 205000 steps | 61.6 steps/s | 55.5min
+2026-05-05 19:08:57,894 [INFO] 📊 210000 steps | 61.6 steps/s | 56.8min
+2026-05-05 19:10:16,037 [INFO] 📊 215000 steps | 61.7 steps/s | 58.1min
+2026-05-05 19:11:35,699 [INFO] 📊 220000 steps | 61.7 steps/s | 59.4min
+2026-05-05 19:12:53,814 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_225000_steps.zip (225000 steps)
+2026-05-05 19:12:53,816 [INFO] 📊 225000 steps | 61.8 steps/s | 60.7min
+2026-05-05 19:14:13,909 [INFO] 📊 230000 steps | 61.8 steps/s | 62.0min
+2026-05-05 19:21:06,616 [INFO] 📊 235000 steps | 56.8 steps/s | 68.9min
+2026-05-05 19:22:26,718 [INFO] 📊 240000 steps | 56.9 steps/s | 70.3min
+2026-05-05 19:23:44,703 [INFO] 📊 245000 steps | 57.1 steps/s | 71.6min
+2026-05-05 19:25:06,301 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_250000_steps.zip (250000 steps)
+2026-05-05 19:25:06,301 [INFO] 📊 250000 steps | 57.1 steps/s | 72.9min
+2026-05-05 19:26:23,884 [INFO] 📊 255000 steps | 57.3 steps/s | 74.2min
+2026-05-05 19:27:41,029 [INFO] 📊 260000 steps | 57.4 steps/s | 75.5min
+2026-05-05 19:29:00,784 [INFO] 📊 265000 steps | 57.5 steps/s | 76.8min
+2026-05-05 19:30:17,558 [INFO] 📊 270000 steps | 57.6 steps/s | 78.1min
+2026-05-05 19:31:37,247 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_275000_steps.zip (275000 steps)
+2026-05-05 19:31:37,247 [INFO] 📊 275000 steps | 57.7 steps/s | 79.4min
+2026-05-05 19:32:57,343 [INFO] 📊 280000 steps | 57.8 steps/s | 80.8min
+2026-05-05 19:34:18,257 [INFO] 📊 285000 steps | 57.8 steps/s | 82.1min
+2026-05-05 19:35:37,160 [INFO] 📊 290000 steps | 57.9 steps/s | 83.4min
+2026-05-05 19:36:58,532 [INFO] 📊 295000 steps | 58.0 steps/s | 84.8min
+2026-05-05 19:38:17,233 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_300000_steps.zip (300000 steps)
+2026-05-05 19:38:17,234 [INFO] 📊 300000 steps | 58.1 steps/s | 86.1min
+2026-05-05 19:39:34,818 [INFO] 📊 305000 steps | 58.2 steps/s | 87.4min
+2026-05-05 19:40:52,824 [INFO] 📊 310000 steps | 58.3 steps/s | 88.7min
+2026-05-05 19:42:10,135 [INFO] 📊 315000 steps | 58.3 steps/s | 90.0min
+2026-05-05 19:43:28,937 [INFO] 📊 320000 steps | 58.4 steps/s | 91.3min
+2026-05-05 19:44:45,475 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_325000_steps.zip (325000 steps)
+2026-05-05 19:44:45,475 [INFO] 📊 325000 steps | 58.5 steps/s | 92.6min
+2026-05-05 19:46:05,606 [INFO] 📊 330000 steps | 58.6 steps/s | 93.9min
+2026-05-05 19:47:23,857 [INFO] 📊 335000 steps | 58.6 steps/s | 95.2min
+2026-05-05 19:55:39,980 [INFO] 📊 340000 steps | 54.8 steps/s | 103.5min
+2026-05-05 19:56:58,408 [INFO] 📊 345000 steps | 54.9 steps/s | 104.8min
+2026-05-05 19:58:16,876 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_350000_steps.zip (350000 steps)
+2026-05-05 19:58:16,876 [INFO] 📊 350000 steps | 55.0 steps/s | 106.1min
+2026-05-05 19:59:38,080 [INFO] 📊 355000 steps | 55.1 steps/s | 107.4min
+2026-05-05 20:00:57,124 [INFO] 📊 360000 steps | 55.2 steps/s | 108.8min
+2026-05-05 20:02:16,270 [INFO] 📊 365000 steps | 55.3 steps/s | 110.1min
+2026-05-05 20:03:34,207 [INFO] 📊 370000 steps | 55.4 steps/s | 111.4min
+2026-05-05 20:04:55,379 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_375000_steps.zip (375000 steps)
+2026-05-05 20:04:55,380 [INFO] 📊 375000 steps | 55.4 steps/s | 112.7min
+2026-05-05 20:06:14,367 [INFO] 📊 380000 steps | 55.5 steps/s | 114.1min
+2026-05-05 20:07:33,398 [INFO] 📊 385000 steps | 55.6 steps/s | 115.4min
+2026-05-05 20:08:54,018 [INFO] 📊 390000 steps | 55.7 steps/s | 116.7min
+2026-05-05 20:10:11,330 [INFO] 📊 395000 steps | 55.8 steps/s | 118.0min
+2026-05-05 20:11:32,871 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_400000_steps.zip (400000 steps)
+2026-05-05 20:11:32,871 [INFO] 📊 400000 steps | 55.9 steps/s | 119.4min
+2026-05-05 20:12:51,348 [INFO] 📊 405000 steps | 55.9 steps/s | 120.7min
+2026-05-05 20:14:12,581 [INFO] 📊 410000 steps | 56.0 steps/s | 122.0min
+2026-05-05 20:15:30,051 [INFO] 📊 415000 steps | 56.1 steps/s | 123.3min
+2026-05-05 20:16:50,309 [INFO] 📊 420000 steps | 56.2 steps/s | 124.6min
+2026-05-05 20:18:09,609 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_425000_steps.zip (425000 steps)
+2026-05-05 20:18:09,610 [INFO] 📊 425000 steps | 56.2 steps/s | 126.0min
+2026-05-05 20:19:26,802 [INFO] 📊 430000 steps | 56.3 steps/s | 127.3min
+2026-05-05 20:20:48,195 [INFO] 📊 435000 steps | 56.4 steps/s | 128.6min
+2026-05-05 20:22:08,031 [INFO] 📊 440000 steps | 56.4 steps/s | 129.9min
+2026-05-05 20:23:29,820 [INFO] 📊 445000 steps | 56.5 steps/s | 131.3min
+2026-05-05 20:24:48,143 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_450000_steps.zip (450000 steps)
+2026-05-05 20:24:48,143 [INFO] 📊 450000 steps | 56.6 steps/s | 132.6min
+2026-05-05 20:26:09,170 [INFO] 📊 455000 steps | 56.6 steps/s | 134.0min
+2026-05-05 20:27:26,687 [INFO] 📊 460000 steps | 56.7 steps/s | 135.3min
+2026-05-05 20:28:48,357 [INFO] 📊 465000 steps | 56.7 steps/s | 136.6min
+2026-05-05 20:30:07,928 [INFO] 📊 470000 steps | 56.8 steps/s | 137.9min
+2026-05-05 20:31:26,933 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_475000_steps.zip (475000 steps)
+2026-05-05 20:31:26,933 [INFO] 📊 475000 steps | 56.8 steps/s | 139.3min
+2026-05-05 20:32:47,484 [INFO] 📊 480000 steps | 56.9 steps/s | 140.6min
+2026-05-05 20:34:06,911 [INFO] 📊 485000 steps | 57.0 steps/s | 141.9min
+2026-05-05 20:35:27,288 [INFO] 📊 490000 steps | 57.0 steps/s | 143.3min
+2026-05-05 20:36:46,225 [INFO] 📊 495000 steps | 57.1 steps/s | 144.6min
+2026-05-05 20:38:06,301 [INFO] ✅ Checkpoint: /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/models/f1_ppo_v5_500000_steps.zip (500000 steps)
+2026-05-05 20:38:06,301 [INFO] 📊 500000 steps | 57.1 steps/s | 145.9min
+2026-05-05 20:38:35,004 [INFO] ============================================================
+2026-05-05 20:38:35,004 [INFO] ✅ TREINAMENTO CONCLUÍDO!
+2026-05-05 20:38:35,004 [INFO] 📦 /home/otacs/Documentos/PI_IV/training_session_algorithm/training_output_v5/f1_driver_final_v5_500000.zip
+2026-05-05 20:38:35,005 [INFO] ============================================================

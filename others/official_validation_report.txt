@@ -1,0 +1,7 @@
+VALIDACAO OFICIAL
+-----------------
+Rounds avaliados: 16
+Pilotos comparados: 259
+Exact position match: 5.41% (14/259)
+Top-3 concordancia: 2.70% (7/259)
+MAE de posicao: 6.147
