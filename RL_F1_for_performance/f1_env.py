@@ -10,6 +10,42 @@ MANDATORY_COMPOUNDS = 2
 PIT_STOP_TIME_LOSS = 23.5
 GRID_GAP_SECONDS = 1.8
 SC_PIT_DISCOUNT = 0.35
+VSC_PIT_DISCOUNT = 0.65
+MIN_PIT_GAP_LAPS = 12
+MAX_AGENT_PIT_STOPS = 3
+PACE_PIT_MIN_WEAR = 0.50
+PACE_DROP_TO_PIT = 1.15
+SC_GAP_MIN = 0.2
+SC_GAP_MAX = 0.6
+SC_PIT_POSITION_LOSS_MIN = 3
+SC_PIT_POSITION_LOSS_MAX = 6
+
+REAL_RACE_LAPS = {
+    "Bahrain Grand Prix": 57,
+    "Saudi Arabian Grand Prix": 50,
+    "Australian Grand Prix": 58,
+    "Japanese Grand Prix": 53,
+    "Chinese Grand Prix": 56,
+    "Miami Grand Prix": 57,
+    "Emilia Romagna Grand Prix": 63,
+    "Monaco Grand Prix": 78,
+    "Canadian Grand Prix": 70,
+    "Spanish Grand Prix": 66,
+    "Austrian Grand Prix": 71,
+    "British Grand Prix": 52,
+    "Hungarian Grand Prix": 70,
+    "Belgian Grand Prix": 44,
+    "Dutch Grand Prix": 72,
+    "Italian Grand Prix": 53,
+    "Azerbaijan Grand Prix": 51,
+    "Singapore Grand Prix": 62,
+    "United States Grand Prix": 56,
+    "Mexico City Grand Prix": 71,
+    "São Paulo Grand Prix": 71,
+    "Las Vegas Grand Prix": 50,
+    "Qatar Grand Prix": 57,
+    "Abu Dhabi Grand Prix": 58,
+}
 TRACK_PASSING_FACTOR = {
     "Monaco Grand Prix": 1.45,
     "Hungarian Grand Prix": 1.20,
@@ -99,8 +135,8 @@ class F1RaceEnv(gym.Env):
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=np.zeros(6, dtype=np.float32),
-            high=np.ones(6, dtype=np.float32),
+            low=np.zeros(14, dtype=np.float32),
+            high=np.ones(14, dtype=np.float32),
             dtype=np.float32,
         )
 
@@ -110,11 +146,17 @@ class F1RaceEnv(gym.Env):
         self.compound = COMPOUND_MAP["MEDIUM"]
         self.tyre_life = 1
         self.safety_car_active = False
+        self.vsc_active = False
+        self.manual_sc_laps = set()
+        self.manual_vsc_laps = set()
         self.compounds_used = set()
         self.pit_count = 0
         self.total_time = 0.0
         self.lap_times = []
+        self.stint_lap_times = []
+        self.last_pit_lap = -999
         self._sc_laps = set()
+        self._vsc_laps = set()
         self.opponent_times = {}
         self.num_competitors = 20
         self.driver_history = {}
@@ -215,16 +257,54 @@ class F1RaceEnv(gym.Env):
 
     def _build_safety_car_schedule(self, race_events):
         self._sc_laps = set()
-        sc_events = race_events[race_events["StatusName"].isin(["SafetyCar", "VirtualSafetyCar"])] if "StatusName" in race_events.columns else pd.DataFrame()
-        if sc_events.empty:
+        self._vsc_laps = set()
+
+        if "StatusName" not in race_events.columns:
             return
-        num_sc = len(sc_events)
-        for i in range(num_sc):
-            center_lap = int(self.total_laps * (i + 1) / (num_sc + 1))
-            for offset in range(3):
-                lap = center_lap + offset
-                if 1 <= lap <= self.total_laps:
-                    self._sc_laps.add(lap)
+
+        sc_events = race_events[race_events["StatusName"] == "SafetyCar"]
+        vsc_events = race_events[race_events["StatusName"] == "VirtualSafetyCar"]
+
+        for events, target_set, duration in [
+            (sc_events, self._sc_laps, 3),
+            (vsc_events, self._vsc_laps, 2),
+        ]:
+            if events.empty:
+                continue
+            num_events = len(events)
+            for i in range(num_events):
+                center_lap = int(self.total_laps * (i + 1) / (num_events + 1))
+                for offset in range(duration):
+                    lap = center_lap + offset
+                    if 1 <= lap <= self.total_laps:
+                        target_set.add(lap)
+
+    def activate_safety_car(self, start_lap=None, duration=3):
+        """Ativa Safety Car manualmente. Exemplo: env.activate_safety_car(18, 4)."""
+        if start_lap is None:
+            start_lap = self.current_lap
+        for lap in range(int(start_lap), int(start_lap) + int(duration)):
+            if 1 <= lap <= self.total_laps:
+                self.manual_sc_laps.add(lap)
+                self._sc_laps.add(lap)
+        self.manual_vsc_laps.difference_update(self.manual_sc_laps)
+        self._vsc_laps.difference_update(self._sc_laps)
+
+    def activate_vsc(self, start_lap=None, duration=2):
+        """Ativa Virtual Safety Car manualmente. Exemplo: env.activate_vsc(22, 2)."""
+        if start_lap is None:
+            start_lap = self.current_lap
+        for lap in range(int(start_lap), int(start_lap) + int(duration)):
+            if 1 <= lap <= self.total_laps and lap not in self._sc_laps:
+                self.manual_vsc_laps.add(lap)
+                self._vsc_laps.add(lap)
+
+    def clear_manual_safety_events(self):
+        """Remove SC/VSC manuais sem apagar eventos vindos do dataset."""
+        self._sc_laps.difference_update(self.manual_sc_laps)
+        self._vsc_laps.difference_update(self.manual_vsc_laps)
+        self.manual_sc_laps.clear()
+        self.manual_vsc_laps.clear()
 
     def _choose_start_compound(self, model):
         team_gap = model["team_gap"]
@@ -334,7 +414,8 @@ class F1RaceEnv(gym.Env):
         race = self.race_name if self.race_name is not None else self.np_random.choice(self.available_races)
         race_laps = self.lap_df[self.lap_df["RaceName"] == race]
         race_events = self.events_df[self.events_df["RaceName"] == race]
-        self.total_laps = int(race_laps["LapNumber"].max())
+        dataset_laps = int(race_laps["LapNumber"].max())
+        self.total_laps = REAL_RACE_LAPS.get(race, dataset_laps)
         self.num_competitors = max(int(race_laps["Driver"].nunique()), 2)
         self.track_factor = TRACK_PASSING_FACTOR.get(race, 1.0)
         self._build_safety_car_schedule(race_events)
@@ -351,10 +432,13 @@ class F1RaceEnv(gym.Env):
         self.compound = self._choose_start_compound(self.agent_model)
         self.tyre_life = 1
         self.safety_car_active = False
+        self.vsc_active = False
         self.compounds_used = {self.compound}
         self.pit_count = 0
         self.total_time = 0.0
         self.lap_times = []
+        self.stint_lap_times = []
+        self.last_pit_lap = -999
         self.sc_history = []
         self._init_opponents()
         self.driver_history = {self.agent_model["profile"]["Driver"]: []}
@@ -380,13 +464,17 @@ class F1RaceEnv(gym.Env):
         return max(0.0, (current_position - 1) * 0.040 * self.track_factor)
 
     def _pit_loss(self):
-        return self.pit_time_loss * (SC_PIT_DISCOUNT if self.safety_car_active else 1.0)
+        if self.safety_car_active:
+            return self.pit_time_loss * SC_PIT_DISCOUNT
+        if self.vsc_active:
+            return self.pit_time_loss * VSC_PIT_DISCOUNT
+        return self.pit_time_loss
 
     def _compute_lap_time(self, model, compound, tyre_life, current_position, extra_time=0.0):
         tyre = self.tyre_model[compound]
         base = model["team_base_time"] + model["driver_delta"] + tyre["compound_delta"]
         degradation = tyre["deg_per_lap"] * tyre_life * model["deg_factor"]
-        sc_penalty = 32.0 if self.safety_car_active else 0.0
+        sc_penalty = 32.0 if self.safety_car_active else (13.0 if self.vsc_active else 0.0)
         noise = float(self.np_random.normal(0, model["noise_sigma"] * self._lap_noise_multiplier(self.current_lap)))
         traffic = self._track_position_penalty(current_position)
         return float(base + degradation + traffic + sc_penalty + extra_time + noise)
@@ -410,24 +498,131 @@ class F1RaceEnv(gym.Env):
             if not opp["pit_this_lap"]:
                 opp["tyre_life"] += 1
 
-    def _update_positions(self, agent_pit=False):
-        standings = [(self.agent_model["profile"]["Driver"], self.total_time)] + [(d, opp["total_time"]) for d, opp in self.opponent_times.items()]
-        standings.sort(key=lambda x: x[1])
-        for i, (driver_name, _) in enumerate(standings, start=1):
-            if driver_name == self.agent_model["profile"]["Driver"]:
-                self.position = i
-            else:
-                self.opponent_times[driver_name]["position"] = i
+    def _append_driver_history(self, agent_pit=False):
         lap = self.current_lap
         self.driver_history[self.agent_model["profile"]["Driver"]].append({
-            "lap": lap, "position": self.position, "compound": COMPOUND_NAMES[self.compound], "pit": agent_pit,
-            "team": self.agent_model["profile"]["Team"], "code": self.agent_model["profile"]["Code"],
+            "lap": lap,
+            "position": self.position,
+            "compound": COMPOUND_NAMES[self.compound],
+            "pit": agent_pit,
+            "team": self.agent_model["profile"]["Team"],
+            "code": self.agent_model["profile"]["Code"],
         })
+
         for d, opp in self.opponent_times.items():
             self.driver_history[d].append({
-                "lap": lap, "position": opp["position"], "compound": COMPOUND_NAMES[opp["compound"]], "pit": opp["pit_this_lap"],
-                "team": opp["model"]["profile"]["Team"], "code": opp["model"]["profile"]["Code"],
+                "lap": lap,
+                "position": opp["position"],
+                "compound": COMPOUND_NAMES[opp["compound"]],
+                "pit": opp["pit_this_lap"],
+                "team": opp["model"]["profile"]["Team"],
+                "code": opp["model"]["profile"]["Code"],
             })
+
+    def _get_current_track_order(self):
+        agent_name = self.agent_model["profile"]["Driver"]
+        order = [(self.position, agent_name)]
+        for d, opp in self.opponent_times.items():
+            order.append((opp["position"], d))
+        order.sort(key=lambda x: x[0])
+        return [driver for _, driver in order]
+
+    def _get_driver_total_time(self, driver_name):
+        if driver_name == self.agent_model["profile"]["Driver"]:
+            return self.total_time
+        return self.opponent_times[driver_name]["total_time"]
+
+    def _set_driver_position(self, driver_name, position):
+        if driver_name == self.agent_model["profile"]["Driver"]:
+            self.position = position
+        else:
+            self.opponent_times[driver_name]["position"] = position
+
+    def _recompress_sc_gaps_without_overtakes(self, ordered_drivers):
+        """Junta o grid atrás do Safety Car sem trocar a ordem de pista."""
+        if not ordered_drivers:
+            return
+
+        leader_time = min(self._get_driver_total_time(driver) for driver in ordered_drivers)
+        current_time = leader_time
+
+        for idx, driver in enumerate(ordered_drivers):
+            if idx == 0:
+                new_time = leader_time
+            else:
+                gap = float(self.np_random.uniform(SC_GAP_MIN, SC_GAP_MAX))
+                current_time += gap
+                new_time = current_time
+
+            if driver == self.agent_model["profile"]["Driver"]:
+                self.total_time = new_time
+            else:
+                self.opponent_times[driver]["total_time"] = new_time
+
+    def _update_positions_safety_car_locked(self, agent_pit=False):
+        """Atualiza posições durante SC sem ultrapassagens na pista.
+
+        Regras:
+        - sem pit stop: a ordem da pista fica exatamente congelada;
+        - com pit stop: posição só muda por causa dos boxes;
+        - a perda de posição no pit sob SC é limitada para evitar quedas irreais
+          como P1 -> P20 quando o Safety Car acabou de entrar.
+        """
+        agent_name = self.agent_model["profile"]["Driver"]
+        ordered = self._get_current_track_order()
+        original_index = {driver: idx for idx, driver in enumerate(ordered)}
+
+        pitted = set()
+        if agent_pit:
+            pitted.add(agent_name)
+
+        for driver_name, opp in self.opponent_times.items():
+            if opp.get("pit_this_lap", False):
+                pitted.add(driver_name)
+
+        if pitted:
+            stable_order = [driver for driver in ordered if driver not in pitted]
+
+            if not stable_order:
+                ordered = sorted(pitted, key=lambda d: original_index[d])
+            else:
+                for driver in sorted(pitted, key=lambda d: original_index[d]):
+                    loss = int(
+                        self.np_random.integers(
+                            SC_PIT_POSITION_LOSS_MIN,
+                            SC_PIT_POSITION_LOSS_MAX + 1,
+                        )
+                    )
+
+                    target_idx = original_index[driver] + loss
+
+                    removed_before = sum(
+                        1 for p in pitted
+                        if original_index[p] < original_index[driver]
+                    )
+                    target_idx -= removed_before
+
+                    target_idx = max(0, min(target_idx, len(stable_order)))
+                    stable_order.insert(target_idx, driver)
+
+                ordered = stable_order
+
+        for pos, driver_name in enumerate(ordered, start=1):
+            self._set_driver_position(driver_name, pos)
+
+        self._recompress_sc_gaps_without_overtakes(ordered)
+        self._append_driver_history(agent_pit=agent_pit)
+
+    def _update_positions(self, agent_pit=False):
+        standings = [(self.agent_model["profile"]["Driver"], self.total_time)] + [
+            (d, opp["total_time"]) for d, opp in self.opponent_times.items()
+        ]
+        standings.sort(key=lambda x: x[1])
+
+        for i, (driver_name, _) in enumerate(standings, start=1):
+            self._set_driver_position(driver_name, i)
+
+        self._append_driver_history(agent_pit=agent_pit)
 
     def _get_live_gaps(self):
         standings = [(self.agent_model["profile"]["Driver"], self.total_time)] + [(d, opp["total_time"] ) for d, opp in self.opponent_times.items()]
@@ -444,24 +639,163 @@ class F1RaceEnv(gym.Env):
             prev_time = total_time
         return gaps
 
+    def _agent_tyre_wear_ratio(self):
+        return self.tyre_life / max(self._stint_target(self.compound, self.agent_model), 1)
+
+    def _agent_recent_pace_drop(self):
+        """Queda de ritmo dentro do stint atual.
+
+        Compara as últimas 3 voltas do stint com as 3 primeiras.
+        Retorna 0 se ainda não houver dados suficientes.
+        """
+        if len(self.stint_lap_times) < 7:
+            return 0.0
+
+        early_pace = float(np.mean(self.stint_lap_times[:3]))
+        recent_pace = float(np.mean(self.stint_lap_times[-3:]))
+        return max(0.0, recent_pace - early_pace)
+
+    def _should_agent_pit_under_sc(self):
+        """Prioriza pit na primeira volta útil de Safety Car.
+
+        Evita o agente esperar várias voltas de SC para parar.
+        """
+        if not self.safety_car_active:
+            return False
+
+        if not self._can_agent_pit_now():
+            return False
+
+        # Evita pit duplo: se acabou de parar, não para de novo logo em seguida.
+        # Isso corrige casos em que o agente troca para MEDIUM no SC e,
+        # na volta seguinte, para de novo para HARD.
+        if self.current_lap - self.last_pit_lap <= 3:
+            return False
+
+        laps_left = self.total_laps - self.current_lap
+        tyre_wear = self._agent_tyre_wear_ratio()
+
+        # Se ainda precisa usar outro composto, SC é a melhor janela.
+        if len(self.compounds_used) < MANDATORY_COMPOUNDS and self.current_lap < self.total_laps - 2:
+            return True
+
+        # SC perto do fim: trocar para Soft costuma ser uma oportunidade forte.
+        if laps_left <= 15 and self.compound != COMPOUND_MAP["SOFT"]:
+            return True
+
+        # Pneu já razoavelmente usado: aproveita o SC para reduzir perda.
+        if tyre_wear >= 0.35 and laps_left > 5:
+            return True
+
+        # Terceira parada estratégica sob SC, se ainda houver corrida pela frente.
+        if self.pit_count == 2 and laps_left <= 30 and laps_left >= 3 and self.compound != COMPOUND_MAP["SOFT"]:
+            return True
+
+        return False
+
+    def _can_agent_pit_now(self):
+        laps_left = self.total_laps - self.current_lap
+
+        # Limite normal: até 2 paradas.
+        # Exceção: terceira parada só é liberada em Safety Car no fim da corrida.
+        if self.pit_count >= 2:
+            late_sc_third_stop = (
+                self.pit_count == 2
+                and self.safety_car_active
+                and laps_left <= 30
+                and laps_left >= 2
+            )
+            if not late_sc_third_stop:
+                return False
+
+        # Evita pit stops muito próximos.
+        # Exceção: SC final pode justificar uma parada extra.
+        if self.current_lap - self.last_pit_lap < MIN_PIT_GAP_LAPS:
+            late_sc_short_gap = (
+                self.safety_car_active
+                and laps_left <= 30
+                and self.pit_count == 2
+            )
+            if not late_sc_short_gap:
+                return False
+
+        if self.current_lap >= self.total_laps - 2:
+            return False
+
+        return True
+
+    def _must_agent_pit_for_rules(self):
+        # Garante 2 compostos sem permitir múltiplas paradas desnecessárias.
+        return (
+            len(self.compounds_used) < MANDATORY_COMPOUNDS
+            and self.pit_count == 0
+            and self.current_lap >= int(self.total_laps * 0.68)
+            and self.current_lap < self.total_laps - 3
+        )
+
+    def _should_agent_pit_by_pace(self):
+        tyre_wear = self._agent_tyre_wear_ratio()
+        pace_drop = self._agent_recent_pace_drop()
+        return tyre_wear >= PACE_PIT_MIN_WEAR and pace_drop >= PACE_DROP_TO_PIT
+
     def step(self, action):
         assert self.action_space.contains(action), f"Ação inválida: {action}"
+
         self.safety_car_active = self.current_lap in self._sc_laps
-        self.sc_history.append(self.safety_car_active)
+        self.vsc_active = (self.current_lap in self._vsc_laps) and not self.safety_car_active
+        self.sc_history.append(self.safety_car_active or self.vsc_active)
+
         pit_this_lap = False
         extra_time = 0.0
+
+        # Estratégia do agente:
+        # - PPO decide normalmente.
+        # - Pit só é aceito se respeitar janela mínima e limite de paradas.
+        # - Pit forçado só acontece por queda real de pace ou regra dos 2 compostos.
+        should_force_pit = (
+            self._can_agent_pit_now()
+            and (
+                self._should_agent_pit_under_sc()
+                or self._should_agent_pit_by_pace()
+                or self._must_agent_pit_for_rules()
+            )
+        )
+
+        if should_force_pit and (action == 0 or action - 1 == self.compound):
+            action = self._choose_next_compound(
+                self.compound,
+                self.current_lap,
+                self.agent_model,
+                self.compounds_used,
+            ) + 1
+
+        if action != 0:
+            requested_compound = action - 1
+
+            # Bloqueia pits ruins: mesmo composto ou pit fora da janela estratégica.
+            # A função _can_agent_pit_now já trata a exceção de 3º pit em SC final.
+            if requested_compound == self.compound or not self._can_agent_pit_now():
+                action = 0
+
         if action != 0:
             self.compound = action - 1
             self.tyre_life = 1
             self.compounds_used.add(self.compound)
             self.pit_count += 1
+            self.last_pit_lap = self.current_lap
+            self.stint_lap_times = []
             pit_this_lap = True
             extra_time = self._pit_loss()
         lap_time = self._compute_lap_time(self.agent_model, self.compound, self.tyre_life, self.position, extra_time)
         self.total_time += lap_time
         self.lap_times.append(lap_time)
+        self.stint_lap_times.append(lap_time)
         self._simulate_opponents()
-        self._update_positions(agent_pit=pit_this_lap)
+
+        if self.safety_car_active:
+            self._update_positions_safety_car_locked(agent_pit=pit_this_lap)
+        else:
+            self._update_positions(agent_pit=pit_this_lap)
         if not pit_this_lap:
             self.tyre_life += 1
         finished_lap = self.current_lap
@@ -476,6 +810,7 @@ class F1RaceEnv(gym.Env):
             "lap_time": lap_time,
             "pit_this_lap": pit_this_lap,
             "safety_car": self.safety_car_active,
+            "vsc": self.vsc_active,
             "compounds_used": len(self.compounds_used),
             "agent_driver": self.agent_model["profile"]["Driver"],
             "driver_history": self.driver_history,
@@ -492,26 +827,85 @@ class F1RaceEnv(gym.Env):
             if d == self.agent_model["profile"]["Driver"]:
                 return 0.0 if idx == 0 else abs(t - standings[idx - 1][1])
         return 0.0
+    def _gap_to_front(self):
+        standings = [(self.agent_model["profile"]["Driver"], self.total_time)] + [
+        (d, opp["total_time"]) for d, opp in self.opponent_times.items()
+         ]
+        standings.sort(key=lambda x: x[1])
+
+        for i, (driver, time) in enumerate(standings):
+            if driver == self.agent_model["profile"]["Driver"]:
+               return 0.0 if i == 0 else max(0.0, time - standings[i - 1][1])
+        return 0.0
+
+
+    def _gap_to_leader(self):
+        standings = [(self.agent_model["profile"]["Driver"], self.total_time)] + [
+        (d, opp["total_time"]) for d, opp in self.opponent_times.items()
+        ]
+        standings.sort(key=lambda x: x[1])
+        return max(0.0, self.total_time - standings[0][1])
+
+
+    def _relative_pace(self):
+        if not self.lap_times:
+          return 0.5
+
+        avg_agent = float(np.mean(self.lap_times[-5:]))
+
+        opp_avg = []
+        for opp in self.opponent_times.values():
+           if self.current_lap > 0:
+               opp_avg.append(opp["total_time"] / max(self.current_lap, 1))
+
+        if not opp_avg:
+            return 0.5
+
+        field_median = float(np.median(opp_avg))
+        return min(max((avg_agent - field_median) / 2.0 + 0.5, 0.0), 1.0)
+
 
     def _get_observation(self):
+        n = self.num_competitors
+        prof = self.agent_model["profile"]
+
+        expected_pit_stops = 2 if self.total_laps >= 50 else 1
+
+        avg_finish_ml = prof.get("AvgFinishPos_ML", self.position)
+
         return np.array([
             min(max(self.current_lap / max(self.total_laps, 1), 0.0), 1.0),
-            min(max((self.num_competitors - self.position) / max(self.num_competitors - 1, 1), 0.0), 1.0),
+            min(max((n - self.position) / max(n - 1, 1), 0.0), 1.0),
             min(max(self.compound / 2.0, 0.0), 1.0),
             min(max(self.tyre_life / 50.0, 0.0), 1.0),
-            min(max(self._estimate_gap() / 90.0, 0.0), 1.0),
+            min(max(self._gap_to_front() / 90.0, 0.0), 1.0),
             float(self.safety_car_active),
+            min(max(self.pit_count / 5.0, 0.0), 1.0),
+            min(max(len(self.compounds_used) / 3.0, 0.0), 1.0),
+            self._relative_pace(),
+            min(max(avg_finish_ml / 20.0, 0.0), 1.0),
+            min(max(self.track_factor / 1.5, 0.0), 1.0),
+            min(max((self.total_laps - self.current_lap) / max(self.total_laps, 1), 0.0), 1.0),
+            min(max(expected_pit_stops / 4.0, 0.0), 1.0),
+            min(max(self._gap_to_leader() / 120.0, 0.0), 1.0),
         ], dtype=np.float32)
 
     def _compute_reward(self, terminated):
         n = self.num_competitors
         position_reward = (n - self.position) / n * 0.5
+
+        tyre_wear = self._agent_tyre_wear_ratio()
+        pace_drop = self._agent_recent_pace_drop()
+        tyre_penalty = -1.5 if tyre_wear >= PACE_PIT_MIN_WEAR and pace_drop >= PACE_DROP_TO_PIT and self.pit_count == 0 else 0.0
+
         if not terminated:
-            return float(position_reward)
+            return float(position_reward + tyre_penalty)
+
         final_reward = (n - self.position) / max(n - 1, 1) * 20 - 10
-        compound_penalty = -5.0 if len(self.compounds_used) < MANDATORY_COMPOUNDS else 0.0
+        compound_penalty = -25.0 if len(self.compounds_used) < MANDATORY_COMPOUNDS else 0.0
+        no_pit_penalty = -80.0 if self.pit_count == 0 else 0.0
         pit_penalty = max(0, self.pit_count - 3) * -1.0
-        return float(position_reward + final_reward + compound_penalty + pit_penalty)
+        return float(position_reward + final_reward + compound_penalty + no_pit_penalty + pit_penalty)
 
     def render(self):
         if self.render_mode == "human":
