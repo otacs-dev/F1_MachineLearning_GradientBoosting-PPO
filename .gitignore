@@ -1,0 +1,10 @@
+
+.venv311/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.dll
+*.lib
+*.zip
+output_media/
